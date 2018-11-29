@@ -1,0 +1,7 @@
+# Configuration file with messages for calculator.rb
+
+welcome: "Welcome to the Calculator! Please enter your name:"
+valid_name: "Looks like you didn't enter a name."
+input_num: "Please input a number:"
+invalid_num: "Invalid. Please enter a number:"
+quit: "Hit enter to continue or q to quit: "

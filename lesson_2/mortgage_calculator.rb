@@ -10,9 +10,11 @@ monthly_interest_rate = ''
 result = ''
 
 def valid_number?(num)
-  if num =~ /^-?[0-9]+\.?-?[0-9]+$/ ||
-     num =~ /^-?[0-9]+$/ ||
-     num =~ /^-?[0-9]+\.?+$/
+  if num.to_i < 0
+    false
+  elsif num =~ /^-?[0-9]+\.?-?[0-9]+$/ ||
+        num =~ /^-?[0-9]+$/ ||
+        num =~ /^-?[0-9]+\.?+$/
     true
   else
     false
@@ -34,7 +36,7 @@ until quit == false
     loan_amount = loan_amount.gsub(/[\s,$]/, "")
     if valid_number?(loan_amount) != true
       prompt "Invalid entry. Please enter a valid loan amount:"
-    elsif loan_amount == '0'
+    elsif loan_amount == '0' || loan_amount.to_i < 0
       prompt "0 is not a valid entry. Please enter a valid loan amount:"
     else
       break

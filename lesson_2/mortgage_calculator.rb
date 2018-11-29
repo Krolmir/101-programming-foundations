@@ -36,7 +36,7 @@ until quit == false
     loan_amount = loan_amount.gsub(/[\s,$]/, "")
     if valid_number?(loan_amount) != true
       prompt "Invalid entry. Please enter a valid loan amount:"
-    elsif loan_amount == '0' || loan_amount.to_i < 0
+    elsif loan_amount == '0'
       prompt "0 is not a valid entry. Please enter a valid loan amount:"
     else
       break
@@ -57,8 +57,10 @@ until quit == false
   prompt "Please enter the loan duration (years):"
   loop do
     loan_duration = gets.chomp
-    if valid_number?(loan_duration) != true
-      prompt "Invalid entry. Please enter a valid loan duration in years."
+    if loan_duration.to_f % 1 != 0
+      prompt "Invalid entry. Please enter a whole number:"
+    elsif valid_number?(loan_duration) != true
+      prompt "Invalid entry. Please enter a valid loan duration in years:"
     elsif loan_duration == '0'
       prompt "0 is not a valid entry. Please enter a valid loan duration:"
     else
@@ -81,7 +83,7 @@ until quit == false
   prompt "Your monthly payments will be $#{result.ceil(2)}"
   prompt "The duration will be #{loan_duration_months} months."
 
-  prompt "Use q to quit and anything else to continue with another calculation"
+  prompt "Use q to quit and anything else to continue with another calculation:"
   temp = gets.chomp.downcase
   if temp == "q" then quit = false end
 end

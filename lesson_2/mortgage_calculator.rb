@@ -21,6 +21,43 @@ def valid_number?(num)
   end
 end
 
+def invalid_loan_amount?(num)
+  if !valid_number?(num)
+    prompt "Invalid entry. Please enter a valid loan amount:"
+    false
+  elsif num == '0'
+    prompt "0 is not a valid entry. Please enter a valid loan amount:"
+    false
+  else
+    true
+  end
+end
+
+def invalid_apr?(num)
+  if !valid_number?(num)
+    prompt "Invalid entry. Please enter a valid APR:"
+    false
+  else
+    true
+  end
+end
+
+def invalid_loan_duration?(num)
+  if num.to_f % 1 != 0
+    prompt "Invalid entry. Please enter a whole number:"
+    false
+  elsif !valid_number?(num)
+    prompt "Invalid entry. Please enter a valid loan duration in years:"
+    false
+  elsif num == '0'
+    prompt "0 is not a valid entry. Please enter a valid loan duration:"
+    false
+  else
+    true 
+  end
+end
+
+
 def prompt(message)
   p "=>  #{message}"
 end
@@ -34,22 +71,16 @@ until quit == false
   loop do
     loan_amount = gets.chomp
     loan_amount = loan_amount.gsub(/[\s,$]/, "")
-    if valid_number?(loan_amount) != true
-      prompt "Invalid entry. Please enter a valid loan amount:"
-    elsif loan_amount == '0'
-      prompt "0 is not a valid entry. Please enter a valid loan amount:"
-    else
+    if invalid_loan_amount?(loan_amount)
       break
     end
-  end
+   end
 
   prompt "Please enter the Annual Percentage Rate (APR):"
   loop do
     apr = gets.chomp
     apr = apr.gsub(/[\s%]/, "")
-    if valid_number?(apr) != true
-      prompt "Invalid entry. Please enter a valid APR:"
-    else
+    if invalid_apr?(apr)
       break
     end
   end
@@ -57,13 +88,7 @@ until quit == false
   prompt "Please enter the loan duration (years):"
   loop do
     loan_duration = gets.chomp
-    if loan_duration.to_f % 1 != 0
-      prompt "Invalid entry. Please enter a whole number:"
-    elsif valid_number?(loan_duration) != true
-      prompt "Invalid entry. Please enter a valid loan duration in years:"
-    elsif loan_duration == '0'
-      prompt "0 is not a valid entry. Please enter a valid loan duration:"
-    else
+    if invalid_loan_duration?(loan_duration)
       break
     end
   end

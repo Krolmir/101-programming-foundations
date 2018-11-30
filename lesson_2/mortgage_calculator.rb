@@ -61,6 +61,12 @@ def prompt(message)
   p "=>  #{message}"
 end
 
+def format_number(number)
+  number = number.to_s.split('.')
+  number[0].reverse!.gsub!(/(\d{3})(?=\d)/, '\\1,').reverse!
+  number.join('.')
+end
+
 prompt "Welcome to the Mortgage Calculator!"
 
 quit = true
@@ -104,7 +110,8 @@ until !quit
     result = i * (j / (1 - (1 + j)**-n))
   end
 
-  prompt "Your monthly payments will be $#{result.ceil(2)}"
+  prompt "Your monthly payments will be $#{format_number(result.ceil(2))}"
+  prompt "For an initial loan of $#{format_number(loan_amount.to_i)}"
   prompt "The duration will be #{loan_duration_months} months."
 
   prompt "Use q to quit and anything else to continue with another calculation:"

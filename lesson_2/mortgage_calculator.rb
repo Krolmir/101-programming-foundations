@@ -53,10 +53,9 @@ def invalid_loan_duration?(num)
     prompt "0 is not a valid entry. Please enter a valid loan duration:"
     false
   else
-    true 
+    true
   end
 end
-
 
 def prompt(message)
   p "=>  #{message}"
@@ -65,7 +64,7 @@ end
 prompt "Welcome to the Mortgage Calculator!"
 
 quit = true
-until quit == false
+until !quit
 
   prompt "Please enter the loan amount:"
   loop do
@@ -74,7 +73,7 @@ until quit == false
     if invalid_loan_amount?(loan_amount)
       break
     end
-   end
+  end
 
   prompt "Please enter the Annual Percentage Rate (APR):"
   loop do

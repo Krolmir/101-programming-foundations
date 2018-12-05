@@ -38,19 +38,6 @@ def win?(first, second)
     spock_win?(first, second)
 end
 
-# def win?(first, second)
-#  (first == 'rock' && second == 'scissors') ||
-#    (first == 'paper' && second == 'rock') ||
-#    (first == 'scissors' && second == 'paper') ||
-#    (first == 'rock' && second == 'lizard') ||
-#    (first == 'paper' && second == 'spock') ||
-#    (first == 'scissors' && second == 'lizard') ||
-#    (first == 'lizard' && second == 'spock') ||
-#    (first == 'lizard' && second == 'paper') ||
-#    (first == 'spock' && second == 'rock') ||
-#    (first == 'spock' && second == 'scissors')
-# end
-
 def choice_abr(str)
   if str == 'r'
     'rock'
@@ -77,30 +64,66 @@ def display_results(player, computer)
   end
 end
 
+def check_total?(player, computer)
+  if player == 5
+    prompt("----------------------------------------------------------------")
+    prompt("You have beaten the computer! Congratulations!")
+    prompt("----------------------------------------------------------------")
+  elsif computer == 5
+    prompt("----------------------------------------------------------------")
+    prompt("Sorry, but you have been beaten by the computer. Better "\
+     "luck next time!")
+    prompt("----------------------------------------------------------------")
+  end
+end
+
 loop do
+  prompt("----Welcome to Rock Paper Scissors Lizard Spock----")
+  prompt("This is a best out of 9 series against the computer")
+  prompt("Best of luck!!!")
+  prompt("----------------------------------------------------------------")
+  prompt("You may input either the full word or the first letter of each " \
+      "word (sp for spock & sc for scissors).")
   choice = ''
+  player_total = 0
+  computer_total = 0
 
   loop do
-    prompt("Choose one: #{VALID_CHOICES.join(', ')}:")
-    prompt("You may input either the full word or first letter of the word " \
-    "(sp for spock & sc for scissors).")
-    choice = gets.chomp
-    choice = choice_abr(choice)
+    loop do
+      prompt("Choose one: #{VALID_CHOICES.join(', ')}:")
 
-    if VALID_CHOICES.include?(choice)
-      break
-    else
-      prompt("That's not a valid choice.")
+      choice = gets.chomp.downcase
+      choice = choice_abr(choice)
+
+      if VALID_CHOICES.include?(choice)
+        break
+      else
+        prompt("-----That's not a valid choice.-----")
+      end
     end
+
+    computer_choice = VALID_CHOICES.sample
+
+    prompt("You chose: #{choice}; Computer Chose: #{computer_choice}")
+
+    display_results(choice, computer_choice)
+
+    if win?(choice, computer_choice)
+      player_total += 1
+    elsif win?(computer_choice, choice)
+      computer_total += 1
+    end
+
+    break if check_total?(player_total, computer_total)
+
+    prompt("----- Scoreboard -----")
+    prompt("Player1: #{player_total} Computer: #{computer_total}")
+    prompt("Lets go again!")
   end
 
-  computer_choice = VALID_CHOICES.sample
-
-  prompt("You chose: #{choice}; Computer Chose: #{computer_choice}")
-
-  display_results(choice, computer_choice)
-
-  prompt("Do you want to play again?")
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
+  prompt("Do you want to play again? Enter y for yes or anything else for no:")
+  answer = gets.chomp.downcase
+  break unless answer == 'y'
 end
+
+prompt("Thank you for playing. Have a nice day!")

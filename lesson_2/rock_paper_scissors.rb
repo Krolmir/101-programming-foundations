@@ -1,5 +1,6 @@
 # rock_paper_scissors.rb
 VALID_CHOICES = %w(rock paper scissors lizard spock)
+WINTOTAL = 5
 
 def prompt(message)
   p "=> #{message}"
@@ -64,12 +65,28 @@ def display_results(player, computer)
   end
 end
 
-def check_total?(player, computer)
-  if player == 5
+def player_won_game?(player)
+  if player == WINTOTAL
+    true
+  else
+    false
+  end
+end
+
+def computer_won_game?(computer)
+  if computer == WINTOTAL
+    true
+  else
+    false
+  end
+end
+
+def display_grand_winner_message(player_win, computer_win)
+  if player_win
     prompt("----------------------------------------------------------------")
     prompt("You have beaten the computer! Congratulations!")
     prompt("----------------------------------------------------------------")
-  elsif computer == 5
+  elsif computer_win
     prompt("----------------------------------------------------------------")
     prompt("Sorry, but you have been beaten by the computer. Better "\
      "luck next time!")
@@ -79,7 +96,7 @@ end
 
 loop do
   prompt("----Welcome to Rock Paper Scissors Lizard Spock----")
-  prompt("This is a best out of 9 series against the computer")
+  prompt("First person to #{WINTOTAL} wins is the Grand Winner!")
   prompt("Best of luck!!!")
   prompt("----------------------------------------------------------------")
   prompt("You may input either the full word or the first letter of each " \
@@ -114,16 +131,26 @@ loop do
       computer_total += 1
     end
 
-    break if check_total?(player_total, computer_total)
+    c_temp = computer_won_game?(computer_total)
+    p_temp = player_won_game?(player_total)
+
+    if c_temp || p_temp
+      display_grand_winner_message(p_temp, c_temp)
+      break
+    end
 
     prompt("----- Scoreboard -----")
     prompt("Player1: #{player_total} Computer: #{computer_total}")
-    prompt("Lets go again!")
+    prompt("Lets go again! When ready press anykey and hit enter to continue")
+    gets.chomp
+    system('clear')
   end
 
-  prompt("Do you want to play again? Enter y for yes or anything else for no:")
+  prompt("Do you want to play again? Enter y or yes to continue "\
+  "anything else for no:")
   answer = gets.chomp.downcase
-  break unless answer == 'y'
+  system('clear')
+  break unless answer == 'y' || answer == 'yes'
 end
 
 prompt("Thank you for playing. Have a nice day!")

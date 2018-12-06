@@ -81,12 +81,12 @@ def computer_won_game?(computer)
   end
 end
 
-def display_grand_winner_message(player_win, computer_win)
-  if player_win
+def display_grand_winner_message(player_total, computer_total)
+  if player_won_game?(player_total)
     prompt("----------------------------------------------------------------")
     prompt("You have beaten the computer! Congratulations!")
     prompt("----------------------------------------------------------------")
-  elsif computer_win
+  elsif computer_won_game?(computer_total)
     prompt("----------------------------------------------------------------")
     prompt("Sorry, but you have been beaten by the computer. Better "\
      "luck next time!")
@@ -131,11 +131,8 @@ loop do
       computer_total += 1
     end
 
-    c_temp = computer_won_game?(computer_total)
-    p_temp = player_won_game?(player_total)
-
-    if c_temp || p_temp
-      display_grand_winner_message(p_temp, c_temp)
+    if player_won_game?(player_total) || computer_won_game?(computer_total)
+      display_grand_winner_message(player_total, computer_total)
       break
     end
 

@@ -16,7 +16,7 @@ end
 # rubocop:disable Metrics/AbcSize
 def display_board(brd)
   puts `clear`
-  puts "You're a #{PLAYER_MARKER}. Computer is a #{COMPUTER_MARKER}."
+  puts "You're #{PLAYER_MARKER}. Computer is a #{COMPUTER_MARKER}."
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
   puts "     |     |"
@@ -42,7 +42,7 @@ def empty_squares(brd)
 end
 
 def player_places_piece!(brd)
-  prompt "Choose a square. Options: #{empty_squares(brd).join(', ')}"
+  prompt "Choose a square. Options: #{joinor(empty_squares(brd))}"
   square = ''
   loop do
     square = gets.chomp.to_i
@@ -70,12 +70,34 @@ end
 def detect_winner(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 3
-      return "Player"
+      return "You have won!"
     elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
-      return "Computer"
+      return "The Computer has won!"
     end
   end
   nil
+end
+
+# I have compressed this method a few times to satisfy rubocops AbcSize
+# complaint. Don't know if this was the most efficient way, but came down to
+# these two methods below.
+
+def range(brd, delimiter)
+  brd[0..brd.length - 2].join(delimiter)
+end
+
+def joinor(brd, delimiter = ', ', conj = 'or')
+  range = range(brd, delimiter)
+  last = brd.last.to_s
+  if brd.length > 1
+    if brd.length == 2
+      range + ' ' + conj + ' ' + last
+    else
+      range + delimiter + conj + ' ' + last
+    end
+  else
+    range
+  end
 end
 
 loop do
@@ -93,7 +115,7 @@ loop do
   display_board(board)
 
   if someone_won?(board)
-    prompt "The #{detect_winner(board)} has won!"
+    prompt detect_winner(board)
   end
 
   if board_full?(board) && !someone_won?(board)

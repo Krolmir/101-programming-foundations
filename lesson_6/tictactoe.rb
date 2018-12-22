@@ -13,10 +13,15 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
+def display_score(player_score, computer_score, user = 'Player 1')
+  puts "_________________________________"
+  puts user + ': ' + PLAYER_MARKER + '   ' + player_score.to_s + '|' +
+       computer_score.to_s + '   ' + 'Computer: ' + COMPUTER_MARKER
+  puts "_________________________________"
+end
+
 # rubocop:disable Metrics/AbcSize
 def display_board(brd)
-  puts `clear`
-  puts "You're #{PLAYER_MARKER}. Computer is a #{COMPUTER_MARKER}."
   puts "     |     |"
   puts "  #{brd[1]}  |  #{brd[2]}  |  #{brd[3]}"
   puts "     |     |"
@@ -48,7 +53,7 @@ def player_places_piece!(brd)
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
     prompt "Invalid choice. Please choose a valid square."\
-    " Options:#{empty_squares(brd).join(', ')}:"
+    " Options:#{joinor(empty_squares(brd))}:"
   end
 
   brd[square] = PLAYER_MARKER
@@ -63,17 +68,33 @@ def board_full?(brd)
   empty_squares(brd).empty?
 end
 
-def someone_won?(brd)
-  !!detect_winner(brd)
+def someone_won?(brd, user)
+  !!detect_winner(brd, user)
 end
 
-def detect_winner(brd)
+def player_win?(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 3
-      return "You have won!"
-    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
-      return "The Computer has won!"
+      return true
     end
+  end
+  nil
+end
+
+def computer_win?(brd)
+  WINNING_LINES.each do |line|
+    if brd.values_at(*line).count(COMPUTER_MARKER) == 3
+      return true
+    end
+  end
+  nil
+end
+
+def detect_winner(brd, user)
+  if player_win?(brd)
+    return "#{user} has won!"
+  elsif computer_win?(brd)
+    return "The Computer has won!"
   end
   nil
 end
@@ -101,25 +122,65 @@ def joinor(brd, delimiter = ', ', conj = 'or')
 end
 
 loop do
-  board = initialize_board
+  player = 0
+  computer = 0
+  name = ''
 
   loop do
+    prompt "Please enter a user name (Maximum of 10 characters):"
+    name = gets.chomp
+
+    if name.length > 10
+      prompt "Invalid name entry."
+    else
+      break
+    end
+  end
+
+  loop do
+    board = initialize_board
+
+    loop do
+      puts "\e[H\e[2J"
+      display_score(player, computer, name)
+
+      display_board(board)
+      player_places_piece!(board)
+      break if someone_won?(board, name) || board_full?(board)
+
+      computer_places_piece!(board)
+      break if someone_won?(board, name) || board_full?(board)
+    end
+
+    if player_win?(board)
+      player += 1
+    elsif computer_win?(board)
+      computer += 1
+    end
+
+    puts "\e[H\e[2J"
+    display_score(player, computer, name)
     display_board(board)
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
 
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-  end
+    if someone_won?(board, name)
+      prompt detect_winner(board, name)
+    end
 
-  display_board(board)
+    if board_full?(board) && !someone_won?(board, name)
+      prompt "It's a Tie!"
+    end
 
-  if someone_won?(board)
-    prompt detect_winner(board)
-  end
+    if player == 5
+      puts "Congratulations #{name}! You have beaten the computer in a race"\
+           " to 5 wins!"
+      break
+    elsif computer == 5
+      puts "The computer has won the race to 5 wins! Better luck next time."
+      break
+    end
 
-  if board_full?(board) && !someone_won?(board)
-    prompt "It's a Tie!"
+    prompt "Please press enter to continue."
+    gets
   end
 
   prompt "Play again? (y or n)"

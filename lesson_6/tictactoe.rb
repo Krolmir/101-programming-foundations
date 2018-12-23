@@ -78,12 +78,12 @@ end
 def computer_defense(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1 
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
       line.each do |v|
         if brd[v] == INITIAL_MARKER
           return brd[v] = COMPUTER_MARKER
-        end  
-      end  
+        end
+      end
     end
   end
 end
@@ -91,20 +91,20 @@ end
 def computer_offense(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1 
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
       line.each do |v|
         if brd[v] == INITIAL_MARKER
           return brd[v] = COMPUTER_MARKER
-        end  
-      end  
+        end
+      end
     end
   end
 end
 
 def computer_potential_win?(brd)
- WINNING_LINES.each do |line|
+  WINNING_LINES.each do |line|
     if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1 
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
       return true
     end
   end
@@ -114,7 +114,7 @@ end
 def player_potential_win?(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1 
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
       return true
     end
   end
@@ -184,34 +184,34 @@ loop do
   name = ''
   choose = ''
   counter = 0
-  
+
   loop do
     prompt "Please enter a user name (Minimum of 2 characters & "\
            "Maximum of 10 characters):"
     name = gets.chomp
-  
+
     if name.length > 10 || name.length < 2
       prompt "Invalid name entry."
     else
       break
     end
   end
-  
+
   loop do
-      prompt "Please choose who you would like to go first(Y for you,"\
-             " C for computer, or A for alternating)"
-      choose = gets.chomp.downcase
-      if choose == PLAYER_FIRST
-        break
-      elsif choose == COMPUTER_FIRST
-        break
-      elsif choose == ALTERNATE
-        break
-      else
-        prompt "Invalid entry. Try again. :P"
-      end
+    prompt "Please choose who you would like to go first(Y for you,"\
+           " C for computer, or A for alternating)"
+    choose = gets.chomp.downcase
+    if choose == PLAYER_FIRST
+      break
+    elsif choose == COMPUTER_FIRST
+      break
+    elsif choose == ALTERNATE
+      break
+    else
+      prompt "Invalid entry. Try again. :P"
     end
-    
+  end
+
   loop do
     board = initialize_board
 
@@ -221,7 +221,7 @@ loop do
         display_score(player, computer, name)
 
         display_board(board)
-        
+
         player_places_piece!(board)
         break if someone_won?(board, name) || board_full?(board)
 
@@ -230,35 +230,35 @@ loop do
       elsif choose == COMPUTER_FIRST
         computer_places_piece!(board)
         break if someone_won?(board, name) || board_full?(board)
-        
+
         puts "\e[H\e[2J"
         display_score(player, computer, name)
         display_board(board)
-        
+
         player_places_piece!(board)
         break if someone_won?(board, name) || board_full?(board)
       elsif choose == ALTERNATE
         if counter.even?
           puts "\e[H\e[2J"
           display_score(player, computer, name)
-  
+
           display_board(board)
-          
+
           player_places_piece!(board)
           break if someone_won?(board, name) || board_full?(board)
-  
+
           computer_places_piece!(board)
           break if someone_won?(board, name) || board_full?(board)
         elsif counter.odd?
           computer_places_piece!(board)
           break if someone_won?(board, name) || board_full?(board)
-          
+
           puts "\e[H\e[2J"
           display_score(player, computer, name)
           display_board(board)
-          
+
           player_places_piece!(board)
-          break if someone_won?(board, name) || board_full?(board)  
+          break if someone_won?(board, name) || board_full?(board)
         end
       end
     end

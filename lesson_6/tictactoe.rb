@@ -1,7 +1,7 @@
 # TicTacToe
 
-require 'pry'
-
+BEST_SQUARE = 5
+AMOUNT_OF_WINS = 5
 PLAYER_FIRST = 'y'
 COMPUTER_FIRST = 'c'
 INITIAL_MARKER = ' '
@@ -76,7 +76,7 @@ def player_places_piece!(brd)
 end
 
 def computer_defense(brd)
-  high_risk?(brd, PLAYER_MARKER).each do |v|
+  high_risk_line(brd, PLAYER_MARKER).each do |v|
     if brd[v] == INITIAL_MARKER
       return brd[v] = COMPUTER_MARKER
     end
@@ -84,7 +84,7 @@ def computer_defense(brd)
 end
 
 def computer_offense(brd)
-  high_risk?(brd, COMPUTER_MARKER).each do |v|
+  high_risk_line(brd, COMPUTER_MARKER).each do |v|
     if brd[v] == INITIAL_MARKER
       return brd[v] = COMPUTER_MARKER
     end
@@ -96,8 +96,8 @@ def computer_ai(brd)
     computer_offense(brd)
   elsif high_risk?(brd, PLAYER_MARKER)
     computer_defense(brd)
-  elsif brd[5] == INITIAL_MARKER
-    brd[5] = COMPUTER_MARKER
+  elsif brd[BEST_SQUARE] == INITIAL_MARKER
+    brd[BEST_SQUARE] = COMPUTER_MARKER
   else
     square = empty_squares(brd).sample
     brd[square] = COMPUTER_MARKER
@@ -105,6 +105,16 @@ def computer_ai(brd)
 end
 
 def high_risk?(brd, marker)
+  WINNING_LINES.each do |line|
+    if brd.values_at(*line).count(marker) == 2 &&
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
+      return true
+    end
+  end
+  false
+end
+
+def high_risk_line(brd, marker)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(marker) == 2 &&
        brd.values_at(*line).count(INITIAL_MARKER) == 1
@@ -119,7 +129,7 @@ def board_full?(brd)
 end
 
 def someone_won?(brd, user)
-  !!detect_winner(brd, user)
+  !!display_winner(brd, user)
 end
 
 def player_win?(brd)
@@ -128,7 +138,7 @@ def player_win?(brd)
       return true
     end
   end
-  nil
+  false
 end
 
 def computer_win?(brd)
@@ -137,10 +147,10 @@ def computer_win?(brd)
       return true
     end
   end
-  nil
+  false
 end
 
-def detect_winner(brd, user)
+def display_winner(brd, user)
   if player_win?(brd)
     return "#{user} has won!"
   elsif computer_win?(brd)
@@ -148,10 +158,6 @@ def detect_winner(brd, user)
   end
   nil
 end
-
-# I have compressed this method a few times to satisfy rubocops AbcSize
-# complaint. Don't know if this was the most efficient way, but came down to
-# these two methods below.
 
 def range(brd, delimiter)
   brd[0..brd.length - 2].join(delimiter)
@@ -202,13 +208,22 @@ loop do
   choose = ''
   current_player = ''
   counter = 0
+  play_again = ''
+
+  prompt "------------------------------------------------------------------"\
+         "---------------"
+  prompt "Welcome to Tic Tac Toe! This is a race to #{AMOUNT_OF_WINS} wins"\
+         " against the Computer. Goodluck!!!!!"
+  prompt "------------------------------------------------------------------"\
+         "---------------------"
 
   loop do
-    prompt "Please enter a user name (Minimum of 2 characters & "\
-           "Maximum of 10 characters):"
+    prompt "Please enter a user name: "
+    prompt "Letters & Numbers only"
+    prompt "Minimum of 2 characters & Maximum of 10 characters"
     name = gets.chomp
 
-    if name.length > 10 || name.length < 2
+    if name.length > 10 || name.length < 2 || name =~ /[^A-Za-z0-9]+/
       prompt "Invalid name entry."
     else
       break
@@ -216,8 +231,8 @@ loop do
   end
 
   loop do
-    prompt "Please choose who you would like to go first (Y for you or"\
-           " C for computer)"
+    prompt "Please choose who you would like to go first ('Y' for you or"\
+           " 'C' for computer)"
     choose = gets.chomp.downcase
     if choose == PLAYER_FIRST
       break
@@ -249,7 +264,7 @@ loop do
     reset_screen(board, player, computer, name)
 
     if someone_won?(board, name)
-      prompt detect_winner(board, name)
+      prompt display_winner(board, name)
       counter += 1
     end
 
@@ -258,12 +273,13 @@ loop do
       counter += 1
     end
 
-    if player == 5
+    if player == AMOUNT_OF_WINS
       puts "Congratulations #{name}! You have beaten the computer in a race"\
-           " to 5 wins!"
+           " to #{AMOUNT_OF_WINS} wins!"
       break
-    elsif computer == 5
-      puts "The computer has won the race to 5 wins! Better luck next time."
+    elsif computer == AMOUNT_OF_WINS
+      puts "The computer has won the race to #{AMOUNT_OF_WINS} wins! Better "\
+           "luck next time."
       break
     end
 
@@ -271,9 +287,17 @@ loop do
     gets
   end
 
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
+  loop do
+    prompt "Play again? ('Y' for Yes or 'N' for No)"
+    play_again = gets.chomp
+    if play_again.downcase == 'n' || play_again.downcase == 'y'
+      break
+    else
+      prompt "Invalid input. Please put a valid response."
+    end
+  end
+
+  break if play_again.downcase == 'n'
 end
 
 prompt "Thank you for playing. Goodbye (:"

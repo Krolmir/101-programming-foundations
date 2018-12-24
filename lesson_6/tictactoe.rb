@@ -2,7 +2,6 @@
 
 require 'pry'
 
-ALTERNATE = 'a'
 PLAYER_FIRST = 'y'
 COMPUTER_FIRST = 'c'
 INITIAL_MARKER = ' '
@@ -14,6 +13,12 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
 
 def prompt(msg)
   puts "=> #{msg}"
+end
+
+def reset_screen(brd, player, computer, name)
+  puts "\e[H\e[2J"
+  display_score(player, computer, name)
+  display_board(brd)
 end
 
 def display_score(player_score, computer_score, user)
@@ -50,8 +55,16 @@ def empty_squares(brd)
 end
 
 def player_places_piece!(brd)
-  prompt "Choose a square. Options: #{joinor(empty_squares(brd))}"
+  prompt "Choose a square based on the lower desciption. Options: "\
+  "#{joinor(empty_squares(brd))}"
+  puts ' 1 | 2 | 3 '
+  puts '---|---|---'
+  puts ' 4 | 5 | 6 '
+  puts '---|---|---'
+  puts ' 7 | 8 | 9 '
+
   square = ''
+
   loop do
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
@@ -62,10 +75,26 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def computer_places_piece!(brd)
-  if computer_potential_win?(brd)
+def computer_defense(brd)
+  high_risk?(brd, PLAYER_MARKER).each do |v|
+    if brd[v] == INITIAL_MARKER
+      return brd[v] = COMPUTER_MARKER
+    end
+  end
+end
+
+def computer_offense(brd)
+  high_risk?(brd, COMPUTER_MARKER).each do |v|
+    if brd[v] == INITIAL_MARKER
+      return brd[v] = COMPUTER_MARKER
+    end
+  end
+end
+
+def computer_ai(brd)
+  if high_risk?(brd, COMPUTER_MARKER)
     computer_offense(brd)
-  elsif player_potential_win?(brd)
+  elsif high_risk?(brd, PLAYER_MARKER)
     computer_defense(brd)
   elsif brd[5] == INITIAL_MARKER
     brd[5] = COMPUTER_MARKER
@@ -75,47 +104,11 @@ def computer_places_piece!(brd)
   end
 end
 
-def computer_defense(brd)
+def high_risk?(brd, marker)
   WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
+    if brd.values_at(*line).count(marker) == 2 &&
        brd.values_at(*line).count(INITIAL_MARKER) == 1
-      line.each do |v|
-        if brd[v] == INITIAL_MARKER
-          return brd[v] = COMPUTER_MARKER
-        end
-      end
-    end
-  end
-end
-
-def computer_offense(brd)
-  WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1
-      line.each do |v|
-        if brd[v] == INITIAL_MARKER
-          return brd[v] = COMPUTER_MARKER
-        end
-      end
-    end
-  end
-end
-
-def computer_potential_win?(brd)
-  WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1
-      return true
-    end
-  end
-  nil
-end
-
-def player_potential_win?(brd)
-  WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1
-      return true
+      return line
     end
   end
   nil
@@ -178,11 +171,36 @@ def joinor(brd, delimiter = ', ', conj = 'or')
   end
 end
 
+def place_piece!(brd, current_player)
+  if current_player == 'player'
+    player_places_piece!(brd)
+  elsif current_player == 'computer'
+    computer_ai(brd)
+  end
+end
+
+def alternate_player(current_player)
+  if current_player == 'player'
+    'computer'
+  elsif current_player == 'computer'
+    'player'
+  end
+end
+
+def current_player_set(choose)
+  if choose == PLAYER_FIRST
+    'player'
+  elsif choose == COMPUTER_FIRST
+    'computer'
+  end
+end
+
 loop do
   player = 0
   computer = 0
   name = ''
   choose = ''
+  current_player = ''
   counter = 0
 
   loop do
@@ -198,14 +216,12 @@ loop do
   end
 
   loop do
-    prompt "Please choose who you would like to go first(Y for you,"\
-           " C for computer, or A for alternating)"
+    prompt "Please choose who you would like to go first (Y for you or"\
+           " C for computer)"
     choose = gets.chomp.downcase
     if choose == PLAYER_FIRST
       break
     elsif choose == COMPUTER_FIRST
-      break
-    elsif choose == ALTERNATE
       break
     else
       prompt "Invalid entry. Try again. :P"
@@ -214,53 +230,14 @@ loop do
 
   loop do
     board = initialize_board
+    current_player = current_player_set(choose)
 
     loop do
-      if choose == PLAYER_FIRST
-        puts "\e[H\e[2J"
-        display_score(player, computer, name)
+      reset_screen(board, player, computer, name)
 
-        display_board(board)
-
-        player_places_piece!(board)
-        break if someone_won?(board, name) || board_full?(board)
-
-        computer_places_piece!(board)
-        break if someone_won?(board, name) || board_full?(board)
-      elsif choose == COMPUTER_FIRST
-        computer_places_piece!(board)
-        break if someone_won?(board, name) || board_full?(board)
-
-        puts "\e[H\e[2J"
-        display_score(player, computer, name)
-        display_board(board)
-
-        player_places_piece!(board)
-        break if someone_won?(board, name) || board_full?(board)
-      elsif choose == ALTERNATE
-        if counter.even?
-          puts "\e[H\e[2J"
-          display_score(player, computer, name)
-
-          display_board(board)
-
-          player_places_piece!(board)
-          break if someone_won?(board, name) || board_full?(board)
-
-          computer_places_piece!(board)
-          break if someone_won?(board, name) || board_full?(board)
-        elsif counter.odd?
-          computer_places_piece!(board)
-          break if someone_won?(board, name) || board_full?(board)
-
-          puts "\e[H\e[2J"
-          display_score(player, computer, name)
-          display_board(board)
-
-          player_places_piece!(board)
-          break if someone_won?(board, name) || board_full?(board)
-        end
-      end
+      place_piece!(board, current_player)
+      current_player = alternate_player(current_player)
+      break if someone_won?(board, name) || board_full?(board)
     end
 
     if player_win?(board)
@@ -269,9 +246,7 @@ loop do
       computer += 1
     end
 
-    puts "\e[H\e[2J"
-    display_score(player, computer, name)
-    display_board(board)
+    reset_screen(board, player, computer, name)
 
     if someone_won?(board, name)
       prompt detect_winner(board, name)

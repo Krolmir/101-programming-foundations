@@ -15,8 +15,6 @@
 # 6. If dealer bust, player wins.
 # 7. Compare cards and declare winner.
 
-require 'pry'
-
 # Constants
 RANK = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUIT = ['♣', '♥', '♠', '♦']

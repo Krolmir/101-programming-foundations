@@ -64,10 +64,19 @@ def hit_me(deck, player_cards)
   player_cards
 end
 
-def display_initial_table(player, dealer_cards, player_cards)
-  spacer
-  puts "Dealer: #{dealer_cards[0]}|  |"
-  puts "#{player}:  #{player_cards.join}"
+def display_initial_table(player, dealer_cards, player_cards, player_total)
+  puts "                TWENTY ONE!                "
+  puts "___________________________________________"
+  puts "|                                          |"
+  puts "| Dealer:  #{dealer_cards[0]}|  |"
+  puts "|                                          |"
+  puts "| Dealer total: #{value_of_card(dealer_cards[0][1])}"
+  puts "|__________________________________________|"
+  puts "|                                          |"
+  puts "| #{player}:  #{player_cards.join}"
+  puts "|                                          |"
+  puts "| Current total: #{player_total}"
+  puts "|__________________________________________|"
   spacer
 end
 
@@ -75,18 +84,30 @@ def spacer
   puts "----------------------------"
 end
 
-def display_table(player, dealer_cards, player_cards)
-  puts "Dealer: #{dealer_cards.join}"
-  puts "#{player}:  #{player_cards.join}"
+def display_table(player, dealer_cards, player_cards, dealer_total,
+                  player_total)
+  puts "                TWENTY ONE!                "
+  puts "___________________________________________"
+  puts "|                                          |"
+  puts "| Dealer:    #{dealer_cards.join}"
+  puts "|                                          |"
+  puts "| Dealer total: #{dealer_total}"
+  puts "|__________________________________________|"
+  puts "|                                          |"
+  puts "| #{player}:  #{player_cards.join}"
+  puts "|                                          |"
+  puts "| Current total: #{player_total}"
+  puts "|__________________________________________|"
+  spacer
 end
 
-def get_total(total, cards, ace_count)
+def get_total(total, cards, modified_ace_count)
   total = 0
   cards.each do |card|
     temp = VALUE.values_at(card[1])
     total += temp[0]
   end
-  total - (ace_count * 10)
+  total - (modified_ace_count * 10)
 end
 
 def value_of_card(card)
@@ -157,8 +178,9 @@ if rules == 'r'
   reset_screen
 end
 
+reset_screen
+
 loop do
-  reset_screen
   spacer
   prompt "Please enter a user name: "
   prompt "Letters & Numbers only"
@@ -225,10 +247,10 @@ loop do
   deck = initialize_deck(RANK, SUIT)
   dealer_cards = dealer_initial_cards(deck)
   player_cards = player_initial_cards(deck)
-  display_initial_table(name, dealer_cards, player_cards)
 
-  dealer_total = get_total(dealer_total, dealer_cards, d_ace_count)
-  player_total = get_total(player_total, player_cards, ace_count)
+  dealer_total = get_total(dealer_total, dealer_cards, d_modified_count)
+  player_total = get_total(player_total, player_cards, modified_count)
+  display_initial_table(name, dealer_cards, player_cards, player_total)
 
   loop do
     p_check_total = check_total(player_total, modified_count, ace_count)
@@ -243,14 +265,16 @@ loop do
       d_ace_count = ace_counting(dealer_cards)
       d_check_total = check_total(dealer_total, d_modified_count, d_ace_count)
 
-      if d_check_total == 1
+      case d_check_total
+      when 1
         reset_screen
-        display_table(name, dealer_cards, player_cards)
+        display_table(name, dealer_cards, player_cards, dealer_total,
+                      player_total)
         spacer
         prompt"Sorry, but the dealer has Black Jack. You lose."
         spacer
         break
-      elsif d_check_total == 2
+      when 2
         dealer_total -= 10
         d_modified_count += 1
         prompt "Dealer does not have Black jack! Let's continue!"
@@ -262,31 +286,31 @@ loop do
     end
 
     loop do
-      prompt "Dealer is showing #{value_of_card(dealer_cards[0][1])}"
-      prompt "Your current total is #{player_total}"
-      spacer
       action = choose_option
 
-      if action == 'hit'
+      case action
+      when 'hit'
         hit_me(deck, player_cards)
         reset_screen
-        display_initial_table(name, dealer_cards, player_cards)
-        player_total = get_total(player_total, player_cards, ace_count)
+
+        player_total = get_total(player_total, player_cards, modified_count)
         ace_count = ace_counting(player_cards)
         p_check_total = check_total(player_total, modified_count, ace_count)
+        display_initial_table(name, dealer_cards, player_cards, player_total)
 
-        if p_check_total == -1
+        case p_check_total
+        when -1
           prompt "Your total is #{player_total}"
           prompt "Sorry but you have busted."
           break
-        elsif p_check_total == 1
+        when 1
           prompt "You have 21! Lets see what the dealer has."
           break
-        elsif p_check_total == 2
+        when 2
           player_total -= 10
           modified_count += 1
         end
-      elsif action == 'stay'
+      when 'stay'
         break
       else
         prompt "Invalid Entry. Please enter a valid option:"
@@ -302,7 +326,8 @@ loop do
 
     loop do
       reset_screen
-      display_table(name, dealer_cards, player_cards)
+      display_table(name, dealer_cards, player_cards, dealer_total,
+                    player_total)
       spacer
       prompt "The dealer has #{dealer_total}"
 
@@ -314,21 +339,21 @@ loop do
 
         sleep 3
 
-        dealer_total = get_total(dealer_total, dealer_cards, d_ace_count)
+        dealer_total = get_total(dealer_total, dealer_cards, d_modified_count)
         d_ace_count = ace_counting(dealer_cards)
         d_check_total = check_total(dealer_total, d_modified_count, d_ace_count)
         reset_screen
-        display_table(name, dealer_cards, player_cards)
+        display_table(name, dealer_cards, player_cards, dealer_total,
+                      player_total)
 
-        if d_check_total == -1
-          spacer
+        case d_check_total
+        when -1
           prompt "The Dealer has busted. #{name} wins!"
           break
-        elsif d_check_total == 1
-          spacer
+        when 1
           prompt "Dealer has 21."
           break
-        elsif d_check_total == 2
+        when 2
           dealer_total -= 10
           d_modified_count += 1
         end

@@ -74,7 +74,7 @@ def display_table(player, dealer_cards, player_cards, dealer_total,
   puts "                TWENTY ONE!                "
   puts "___________________________________________"
   puts "|                                          |"
-  puts "| Dealer:    #{dealer_cards.join}"
+  puts "| Dealer:  #{dealer_cards.join}"
   puts "|                                          |"
   puts "| Dealer total: #{dealer_total}"
   puts "|__________________________________________|"

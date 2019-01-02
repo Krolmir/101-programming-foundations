@@ -1,11 +1,16 @@
 # twentyone.rb
 
+require 'pry'
+
 # Constants
 RANK = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUIT = ['♣', '♥', '♠', '♦']
 VALUE = { '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7, '8' => 8,
           '9' => 9, '1' => 10, 'J' => 10, 'Q' => 10, 'K' => 10, 'A' => 11 }
 ESCAPE = 'x'
+FIRST_TO = 5
+GAME_MAX = 31
+
 
 # Methods
 def prompt(msg)
@@ -107,7 +112,7 @@ def get_total(cards)
 end
 
 def when_ace(total)
-  if total > 21
+  if total > GAME_MAX
     total -= 10
   end
   total
@@ -134,11 +139,11 @@ def valid_name?(name)
 end
 
 def check_total(total)
-  if total > 21
+  if total > GAME_MAX
     :bust
-  elsif total == 21
+  elsif total == GAME_MAX
     :twenty_one
-  elsif total < 21
+  elsif total < GAME_MAX
     :below_twenty_one
   end
 end
@@ -181,9 +186,9 @@ def display_early_win_bust(total, name = 'Dealer')
     end
   when :twenty_one
     if name == 'Dealer'
-      prompt "Dealer has 21."
+      prompt "Dealer has #{GAME_MAX}."
     else
-      prompt "You have 21! Lets see what the dealer has."
+      prompt "You have #{GAME_MAX}! Lets see what the dealer has."
     end
   end
 end
@@ -241,6 +246,38 @@ def name_prompt
   spacer
 end
 
+def counter_prompt(player_wins_count, dealer_wins_count, name)
+  spacer
+  prompt "The score is:"
+  prompt "#{name}: #{player_wins_count}"
+  prompt "Dealer: #{dealer_wins_count}"
+  spacer
+  prompt "Hit enter to continue"
+  gets.chomp
+end
+
+def display_grand_winner(player_wins_count, dealer_wins_count, name)
+  if player_wins_count == FIRST_TO
+    spacer
+    prompt "CONGRATULATIONS #{name}! You have beaten the dealer in a first to "\
+           "#{FIRST_TO}."
+    spacer
+    sleep 3
+  elsif dealer_wins_count == FIRST_TO
+    spacer
+    prompt "Sorry, but the dealer has beaten #{name} in a race to "\
+           "#{FIRST_TO}."
+    spacer
+  end
+end
+
+def first_to_prompt(name)
+  prompt "The name of the game is closest to #{GAME_MAX}"
+  prompt "First to #{FIRST_TO} wins is the grand winner."
+  prompt "Goodluck #{name}!"
+  sleep 3
+end
+
 # Local Variables
 name = ''
 
@@ -276,95 +313,136 @@ loop do
 end
 
 loop do
-  # Local Variables
-  deck = []
-  dealer_cards = []
-  player_cards = []
-  player_total = 0
-  dealer_total = 0
-  action = ''
-  p_check_total = 0
-  d_check_total = 0
-
-  reset_screen
-  deck = initialize_deck(RANK, SUIT)
-  dealer_cards = dealer_initial_cards(deck)
-  player_cards = player_initial_cards(deck)
-  dealer_total = get_total(dealer_cards)
-  player_total = get_total(player_cards)
-  display_initial_table(name, dealer_cards, player_cards, player_total)
-
+  first_to_prompt(name)
+ 
+  player_wins_count = 0
+  dealer_wins_count = 0
+  
   loop do
-    p_check_total = check_total(player_total)
-
-    if p_check_total == :twenty_one
-      prompt "Black Jack!!! #{name} Wins!"
+    player_wins = false
+    dealer_wins = false
+    
+    if player_wins_count != 0 || dealer_wins_count != 0
+      counter_prompt(player_wins_count, dealer_wins_count, name)
+    end
+    
+    if player_wins_count == FIRST_TO || dealer_wins_count == FIRST_TO
+      display_grand_winner(player_wins_count, dealer_wins_count, name)
       break
-    elsif value_of_card(dealer_cards[0][1]) == 10 ||
-          value_of_card(dealer_cards[0][1]) == 11
-      display_dealer_checking
-      d_check_total = check_total(dealer_total)
-
-      case d_check_total
-      when :twenty_one
-        reset_screen
-        display_table(name, dealer_cards, player_cards, dealer_total,
-                      player_total)
-        display_dealer_win_message(dealer_total)
-        break
-      else
-        display_continue_message
-      end
     end
-
+    
+    deck = []
+    dealer_cards = []
+    player_cards = []
+    player_total = 0
+    dealer_total = 0
+    action = ''
+    p_check_total = 0
+    d_check_total = 0
+  
+    reset_screen
+    deck = initialize_deck(RANK, SUIT)
+    dealer_cards = dealer_initial_cards(deck)
+    player_cards = player_initial_cards(deck)
+    dealer_total = get_total(dealer_cards)
+    player_total = get_total(player_cards)
+    display_initial_table(name, dealer_cards, player_cards, player_total)
+  
     loop do
-      display_player_total(player_total)
-      action = choose_option
-
-      case action
-      when 'h'
-        hit_me(deck, player_cards)
-        reset_screen
-        player_total = get_total(player_cards)
-        display_initial_table(name, dealer_cards, player_cards, player_total)
-        p_check_total = check_total(player_total)
-        display_early_win_bust(player_total, name)
-        break unless p_check_total == :below_twenty_one
-      when 's'
+      p_check_total = check_total(player_total)
+  
+      if p_check_total == :twenty_one
+        prompt "Black Jack!!! #{name} Wins!"
+        player_wins = true
         break
-      else
-        prompt "Invalid Entry. Please enter a valid option:"
-      end
-    end
-
-    break if p_check_total == :bust
-    display_dealer_turn
-
-    loop do
-      reset_screen
-      display_table(name, dealer_cards, player_cards, dealer_total,
-                    player_total)
-      display_dealer_total(dealer_total)
-
-      if dealer_total < 17
-        hit_me(deck, dealer_cards)
-        display_dealer_hit
-        dealer_total = get_total(dealer_cards)
-        reset_screen
-        display_table(name, dealer_cards, player_cards, dealer_total,
-                      player_total)
+      elsif value_of_card(dealer_cards[0][1]) == 10 ||
+            value_of_card(dealer_cards[0][1]) == 11
+        display_dealer_checking
         d_check_total = check_total(dealer_total)
-        display_early_win_bust(dealer_total)
-        break unless d_check_total == :below_twenty_one
-      elsif dealer_total > 16
-        prompt "The dealer stays."
+  
+        case d_check_total
+        when :twenty_one
+          reset_screen
+          display_table(name, dealer_cards, player_cards, dealer_total,
+                        player_total)
+          display_dealer_win_message(dealer_total)
+          dealer_wins = true
+          break
+        else
+          display_continue_message
+        end
+      end
+  
+      loop do
+        display_player_total(player_total)
+        action = choose_option
+  
+        case action
+        when 'h'
+          hit_me(deck, player_cards)
+          reset_screen
+          player_total = get_total(player_cards)
+          display_initial_table(name, dealer_cards, player_cards, player_total)
+          p_check_total = check_total(player_total)
+          display_early_win_bust(player_total, name)
+          break unless p_check_total == :below_twenty_one
+        when 's'
+          break
+        else
+          prompt "Invalid Entry. Please enter a valid option:"
+        end
+      end
+      
+      if p_check_total == :bust
+        dealer_wins = true 
+        break
+      end  
+      display_dealer_turn
+  
+      loop do
+        reset_screen
+        display_table(name, dealer_cards, player_cards, dealer_total,
+                      player_total)
+        display_dealer_total(dealer_total)
+  
+        if dealer_total < GAME_MAX - 4
+          hit_me(deck, dealer_cards)
+          display_dealer_hit
+          dealer_total = get_total(dealer_cards)
+          reset_screen
+          display_table(name, dealer_cards, player_cards, dealer_total,
+                        player_total)
+          d_check_total = check_total(dealer_total)
+          display_early_win_bust(dealer_total)
+          break unless d_check_total == :below_twenty_one
+        elsif dealer_total >= GAME_MAX - 4
+          prompt "The dealer stays."
+          break
+        end
+      end
+      
+      if d_check_total == :bust
+        player_wins = true
         break
       end
+      
+      temp = get_result(player_total, dealer_total)
+      case temp
+      when :player_wins
+        player_wins = true
+      when :dealer_wins
+        dealer_wins = true
+      end
+      
+      display_result(player_total, dealer_total, name)
+      break
     end
-
-    break if d_check_total == :bust
-    display_result(player_total, dealer_total, name)
-    break
+   
+    if player_wins == true
+      player_wins_count += 1
+    elsif dealer_wins == true
+      dealer_wins_count += 1
+    end
   end
 
   escape_command = exit_prompt

@@ -86,60 +86,159 @@ def display_table(player, dealer_cards, player_cards, dealer_total,
   spacer
 end
 
-def get_total(total, cards, modified_ace_count)
+def get_total(cards)
   total = 0
+  ace_count = 0
   cards.each do |card|
-    temp = VALUE.values_at(card[1])
-    total += temp[0]
+    if VALUE.values_at(card[1]) == [11]
+      total += 11
+      ace_count += 1
+    else
+      total += VALUE.values_at(card[1])[0]
+    end
   end
-  total - (modified_ace_count * 10)
+
+  while ace_count > 0
+    total = when_ace(total)
+    ace_count -= 1
+  end
+
+  total
+end
+
+def when_ace(total)
+  if total > 21
+    total -= 10
+  end
+  total
 end
 
 def value_of_card(card)
   VALUE.values_at(card).join.to_i
 end
 
-def ace_counting(cards)
-  ace_count = 0
-  cards.each do |card|
-    if value_of_card(card[1]) == 11
-      ace_count += 1
-    end
-  end
-  ace_count
-end
-
 def choose_option
-  prompt "Would you like to hit or stay?"
-  prompt "Type 'hit' or 'stay'"
+  prompt "Would you like to hit or stay? ('h' or 's')"
   gets.chomp.downcase
 end
 
 def exit_prompt
+  spacer
   prompt "x to exit. Anything else to play again"
+  spacer
   gets.chomp.downcase
 end
 
 def valid_name?(name)
-  if name.length > 10 || name.length < 2 || name =~ /[^A-Za-z0-9]+/
-    true
-  else
-    false
+  name.length > 10 || name.length < 2 || name =~ /[^A-Za-z0-9]+/
+end
+
+def check_total(total)
+  if total > 21
+    :bust
+  elsif total == 21
+    :twenty_one
+  elsif total < 21
+    :below_twenty_one
   end
 end
 
-def check_total(total, modified_count, ace_count)
-  if total > 21
-    if modified_count < ace_count
-      2
-    else
-      -1
-    end
-  elsif total == 21
-    1
-  elsif total < 21
-    0
+def get_result(player_total, dealer_total)
+  if player_total > dealer_total
+    :player_wins
+  elsif player_total < dealer_total
+    :dealer_wins
+  elsif player_total == dealer_total
+    :tie
   end
+end
+
+def display_result(player_total, dealer_total, name)
+  result = get_result(player_total, dealer_total)
+
+  case result
+  when :player_wins
+    spacer
+    prompt "Congratulations #{name}!! You have beaten the dealer."
+  when :dealer_wins
+    spacer
+    prompt "Sorry #{name}. The dealer has beaten you."
+  when :tie
+    spacer
+    prompt "It's a tie!"
+  end
+end
+
+def display_early_win_bust(total, name = 'Dealer')
+  result = check_total(total)
+
+  case result
+  when :bust
+    if name == 'Dealer'
+      prompt "The Dealer has busted.You win!"
+    else
+      display_player_bust(total)
+    end
+  when :twenty_one
+    if name == 'Dealer'
+      prompt "Dealer has 21."
+    else
+      prompt "You have 21! Lets see what the dealer has."
+    end
+  end
+end
+
+def display_dealer_win_message(dealer_total)
+  spacer
+  prompt "Sorry, but the dealer has #{dealer_total}. You lose."
+  spacer
+end
+
+def display_dealer_checking
+  prompt "Checking to see if dealer has black jack....."
+  sleep 3 # seconds
+end
+
+def display_dealer_turn
+  spacer
+  prompt "Dealers turn..."
+  spacer
+  sleep 3
+end
+
+def display_dealer_hit
+  spacer
+  prompt "Dealer has hit..."
+  spacer
+  sleep 3
+end
+
+def display_player_total(total)
+  spacer
+  prompt "Your current total is #{total}"
+end
+
+def display_dealer_total(total)
+  spacer
+  prompt "The dealer has #{total}"
+end
+
+def display_continue_message
+  prompt "Dealer does not have Black jack! Let's continue!"
+  spacer
+end
+
+def display_player_bust(total)
+  prompt "Your total is #{total}"
+  prompt "Sorry but you have busted."
+end
+
+def name_prompt
+  spacer
+  prompt "Please enter a user name: "
+  prompt "Letters & Numbers only"
+  prompt "Minimum of 2 characters & Maximum of 10 characters"
+  spacer
 end
 
 # Local Variables
@@ -166,11 +265,7 @@ end
 reset_screen
 
 loop do
-  spacer
-  prompt "Please enter a user name: "
-  prompt "Letters & Numbers only"
-  prompt "Minimum of 2 characters & Maximum of 10 characters"
-  spacer
+  name_prompt
   name = gets.chomp
 
   if valid_name?(name)
@@ -180,39 +275,6 @@ loop do
   end
 end
 
-# Main loop algoritm
-
-# First thing we check is if the computer has 21. If they have 21 and player
-# does not then computer instantly wins (even though we don't show their second
-# card..... Maybe add a delay where it says dealer is checking if they have
-# 21 over a few seconds and then continue if they dont and flip their card if
-# they do)
-
-# 1. get player total
-#   - if this is the first itteration and total = 21 player wins and has black
-#     jack and game ends
-#   - elsif computer_total == 21 computer wins
-#   - elsif total = 21 move on to step 2
-#   - elsif total > 21
-#     - if player has an Ace change value to 1 and go back to step 1
-#     - else player busts/loses and game ends
-#   - elsif total < 21 let player choose if they wanna hit or stay
-#     - if player hits pop another card to their total/player cards.
-#       - Return back to step 1
-#     - elsif player stays go to next step
-
-# 2. get computer total (show second initial card as well at this point)
-#     - if total >= 17 move on to next step
-#     - elsif total <= 16 computer hits and returns to step 2
-#     - elsif total > 21 computer
-#       - if computer has an Ace change value to 1 and go back to step 1
-#       - else computer busts/loses and game ends
-
-# 3. compare player total <=> computer total
-#     - if player total > computer total: Player wins
-#     - elsif computer total > player total: Computer wins
-#     - elsif computer total == player total: Tie
-
 loop do
   # Local Variables
   deck = []
@@ -221,10 +283,6 @@ loop do
   player_total = 0
   dealer_total = 0
   action = ''
-  modified_count = 0
-  ace_count = 0
-  d_ace_count = 0
-  d_modified_count = 0
   p_check_total = 0
   d_check_total = 0
 
@@ -232,143 +290,83 @@ loop do
   deck = initialize_deck(RANK, SUIT)
   dealer_cards = dealer_initial_cards(deck)
   player_cards = player_initial_cards(deck)
-
-  dealer_total = get_total(dealer_total, dealer_cards, d_modified_count)
-  player_total = get_total(player_total, player_cards, modified_count)
+  dealer_total = get_total(dealer_cards)
+  player_total = get_total(player_cards)
   display_initial_table(name, dealer_cards, player_cards, player_total)
 
   loop do
-    p_check_total = check_total(player_total, modified_count, ace_count)
-    if p_check_total == 1
+    p_check_total = check_total(player_total)
+
+    if p_check_total == :twenty_one
       prompt "Black Jack!!! #{name} Wins!"
       break
     elsif value_of_card(dealer_cards[0][1]) == 10 ||
           value_of_card(dealer_cards[0][1]) == 11
-      prompt "Checking to see if dealer has black jack....."
-
-      sleep 3 # seconds
-      d_ace_count = ace_counting(dealer_cards)
-      d_check_total = check_total(dealer_total, d_modified_count, d_ace_count)
+      display_dealer_checking
+      d_check_total = check_total(dealer_total)
 
       case d_check_total
-      when 1
+      when :twenty_one
         reset_screen
         display_table(name, dealer_cards, player_cards, dealer_total,
                       player_total)
-        spacer
-        prompt"Sorry, but the dealer has Black Jack. You lose."
-        spacer
+        display_dealer_win_message(dealer_total)
         break
-      when 2
-        dealer_total -= 10
-        d_modified_count += 1
-        prompt "Dealer does not have Black jack! Let's continue!"
-        spacer
       else
-        prompt "Dealer does not have Black jack! Let's continue!"
-        spacer
+        display_continue_message
       end
     end
 
     loop do
+      display_player_total(player_total)
       action = choose_option
 
       case action
-      when 'hit'
+      when 'h'
         hit_me(deck, player_cards)
         reset_screen
-
-        player_total = get_total(player_total, player_cards, modified_count)
-        ace_count = ace_counting(player_cards)
-        p_check_total = check_total(player_total, modified_count, ace_count)
+        player_total = get_total(player_cards)
         display_initial_table(name, dealer_cards, player_cards, player_total)
-
-        case p_check_total
-        when -1
-          prompt "Your total is #{player_total}"
-          prompt "Sorry but you have busted."
-          break
-        when 1
-          prompt "You have 21! Lets see what the dealer has."
-          break
-        when 2
-          player_total -= 10
-          modified_count += 1
-        end
-      when 'stay'
+        p_check_total = check_total(player_total)
+        display_early_win_bust(player_total, name)
+        break unless p_check_total == :below_twenty_one
+      when 's'
         break
       else
         prompt "Invalid Entry. Please enter a valid option:"
       end
     end
 
-    break if p_check_total == -1
-
-    spacer
-    prompt "Dealers turn..."
-    spacer
-    sleep 3
+    break if p_check_total == :bust
+    display_dealer_turn
 
     loop do
       reset_screen
       display_table(name, dealer_cards, player_cards, dealer_total,
                     player_total)
-      spacer
-      prompt "The dealer has #{dealer_total}"
+      display_dealer_total(dealer_total)
 
       if dealer_total < 17
         hit_me(deck, dealer_cards)
-        spacer
-        prompt "Dealer has hit..."
-        spacer
-
-        sleep 3
-
-        dealer_total = get_total(dealer_total, dealer_cards, d_modified_count)
-        d_ace_count = ace_counting(dealer_cards)
-        d_check_total = check_total(dealer_total, d_modified_count, d_ace_count)
+        display_dealer_hit
+        dealer_total = get_total(dealer_cards)
         reset_screen
         display_table(name, dealer_cards, player_cards, dealer_total,
                       player_total)
-
-        case d_check_total
-        when -1
-          prompt "The Dealer has busted. #{name} wins!"
-          break
-        when 1
-          prompt "Dealer has 21."
-          break
-        when 2
-          dealer_total -= 10
-          d_modified_count += 1
-        end
-
+        d_check_total = check_total(dealer_total)
+        display_early_win_bust(dealer_total)
+        break unless d_check_total == :below_twenty_one
       elsif dealer_total > 16
         prompt "The dealer stays."
         break
       end
     end
 
-    break if d_check_total == -1
-
-    # Comparing computer total to player total
-    if player_total > dealer_total
-      spacer
-      prompt "Congratulations #{name}!! You have beaten the dealer."
-      break
-    elsif player_total < dealer_total
-      spacer
-      prompt "Sorry #{name}. The dealer has beaten you."
-      break
-    elsif player_total == dealer_total
-      spacer
-      prompt "It's a tie!"
-      break
-    end
+    break if d_check_total == :bust
+    display_result(player_total, dealer_total, name)
+    break
   end
 
-  spacer
   escape_command = exit_prompt
-  spacer
   break if escape_command == ESCAPE
 end
